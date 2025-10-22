@@ -1713,5 +1713,37 @@
   document.body.appendChild(e);
 }})();
 </script>
+    <!-- jsPDF (for PDF download) -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+
+<!-- Birth Chart logic -->
+<script>
+(function () {
+  const form = document.getElementById('bc-form');
+  if (!form) return;
+
+  const resultsEl = document.getElementById('bc-results');
+  const pdfSection = document.getElementById('pdf-download-section');
+  const downloadBtn = document.getElementById('bc-download');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const name = (document.getElementById('bc-name').value || 'Your').trim();
+    const place = document.getElementById('bc-place').value.trim();
+    const dateStr = document.getElementById('bc-date').value;
+    const timeStr = document.getElementById('bc-time').value || '12:00';
+
+    if (!place || !dateStr) {
+      alert('Please enter both Place and Date of Birth.');
+      return;
+    }
+
+    const sun = getSunSignFromISO(dateStr);
+    const insights = buildInsights({ sun, place, dateStr, timeStr });
+
+    render(insights);
+    resultsEl.style.display = 'grid';
+    pdfSection.style.display =
 </body>
 </html>
