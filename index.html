@@ -1009,6 +1009,291 @@ html {
             outline: 3px solid var(--amethyst);
             outline-offset: 2px;
         }
+        <script>
+/* ========== COSMIC BLUEPRINT (No-API Version) ========== */
+/* Utilities */
+const SIGNS = [
+  { name: "Aries", from: 321, to: 419, element: "Fire", modality: "Cardinal" },
+  { name: "Taurus", from: 420, to: 520, element: "Earth", modality: "Fixed" },
+  { name: "Gemini", from: 521, to: 620, element: "Air", modality: "Mutable" },
+  { name: "Cancer", from: 621, to: 722, element: "Water", modality: "Cardinal" },
+  { name: "Leo", from: 723, to: 822, element: "Fire", modality: "Fixed" },
+  { name: "Virgo", from: 823, to: 922, element: "Earth", modality: "Mutable" },
+  { name: "Libra", from: 923, to: 1022, element: "Air", modality: "Cardinal" },
+  { name: "Scorpio", from: 1023, to: 1121, element: "Water", modality: "Fixed" },
+  { name: "Sagittarius", from: 1122, to: 1221, element: "Fire", modality: "Mutable" },
+  { name: "Capricorn", from: 1222, to: 119, element: "Earth", modality: "Cardinal" }, // wraps year
+  { name: "Aquarius", from: 120, to: 218, element: "Air", modality: "Fixed" },
+  { name: "Pisces", from: 219, to: 320, element: "Water", modality: "Mutable" }
+];
+
+function mdNum(dateStr) {
+  // 'YYYY-MM-DD' -> MMDD integer
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return m * 100 + d;
+}
+
+function getSunSign(dateStr) {
+  const md = mdNum(dateStr);
+  for (const s of SIGNS) {
+    if (s.from <= s.to) {
+      if (md >= s.from && md <= s.to) return s;
+    } else {
+      // Wrap Capricorn: Dec 22–Jan 19
+      if (md >= s.from || md <= s.to) return s;
+    }
+  }
+  return SIGNS[SIGNS.length - 1]; // default Pisces
+}
+
+function getDecan(sign, dateStr) {
+  // Rough decan split: first ~10 days, middle ~10, last ~10 in that sign
+  const md = mdNum(dateStr);
+  let start = sign.from, end = sign.to;
+  // Expand wrap for Capricorn
+  let span;
+  if (start <= end) {
+    span = end - start + 1;
+  } else {
+    // e.g. 1222..1231 and 101..119
+    span = (1231 - start + 1) + end;
+  }
+  const part = Math.ceil(span / 3);
+
+  function offset(val) {
+    if (start <= end) return val - start + 1;
+    // wrap: convert date into offset from start
+    if (val >= start) return (val - start + 1);
+    // date in Jan
+    return (1231 - start + 1) + val;
+  }
+
+  const pos = offset(md);
+  if (pos <= part) return 1;
+  if (pos <= part * 2) return 2;
+  return 3;
+}
+
+function reduceToDigit(num) {
+  while (num > 9 && num !== 11 && num !== 22 && num !== 33) {
+    num = num.toString().split('').reduce((a, b) => a + Number(b), 0);
+  }
+  return num;
+}
+
+function getLifePath(iso) {
+  const digits = iso.replace(/[^0-9]/g, '').split('').map(Number);
+  const sum = digits.reduce((a,b) => a+b, 0);
+  return reduceToDigit(sum);
+}
+
+function moonPhase(dateStr) {
+  // Simple approximation using known new moon date (Jan 6, 2000 18:14 UT)
+  const d = new Date(dateStr + "T00:00:00");
+  const synodic = 29.53058867;
+  const base = new Date(Date.UTC(2000, 0, 6, 18, 14));
+  const days = (d - base) / (1000 * 60 * 60 * 24);
+  const phase = (days % synodic + synodic) % synodic;
+
+  let name = "New Moon", emoji = "🌑", theme = "beginnings, seeding intention";
+  if (phase < 1.84566) { name = "New Moon"; emoji="🌑"; theme="beginnings, seeding intention"; }
+  else if (phase < 5.53699){ name="Waxing Crescent"; emoji="🌒"; theme="early momentum, tending seeds";}
+  else if (phase < 9.22831){ name="First Quarter"; emoji="🌓"; theme="decision, committed action";}
+  else if (phase < 12.91963){ name="Waxing Gibbous"; emoji="🌔"; theme="refinement, building power";}
+  else if (phase < 16.61096){ name="Full Moon"; emoji="🌕"; theme="illumination, culmination";}
+  else if (phase < 20.30228){ name="Waning Gibbous"; emoji="🌖"; theme="sharing, gratitude, integration";}
+  else if (phase < 23.99361){ name="Last Quarter"; emoji="🌗"; theme="release, evaluation";}
+  else if (phase < 27.68493){ name="Balsamic"; emoji="🌘"; theme="rest, closure, inner work";}
+  else { name="New Moon"; emoji="🌑"; theme="beginnings, seeding intention"; }
+  return { name, emoji, theme };
+}
+
+function timeOfDayArchetype(timeStr) {
+  if (!timeStr) return { label: "Timeless", note: "Your energy flows across cycles; attune to your natural rhythm." };
+  const [hh, mm] = timeStr.split(':').map(Number);
+  const t = hh + (mm||0)/60;
+  if (t >= 4 && t < 7)  return { label: "Dawn", note: "Fresh starts & intuitive sparks; you wake with guidance." };
+  if (t >= 7 && t < 12) return { label: "Morning", note: "Clarity, planning, momentum; direct actions carry you." };
+  if (t >= 12 && t < 17) return { label: "Afternoon", note: "Visibility & expression; your gifts want to be seen." };
+  if (t >= 17 && t < 21) return { label: "Evening", note: "Connection & reflection; relationships deepen here." };
+  if (t >= 21 || t < 2)  return { label: "Night", note: "Mystery & imagination; dreamwork supports your path." };
+  return { label: "Deep Night", note: "Quiet wisdom; nurture rest and inner renewal." };
+}
+
+/* Text Libraries */
+const ELEMENT_THEMES = {
+  Fire:  "initiative, courage, creative life-force, direct expression",
+  Earth: "stability, craftsmanship, patience, embodied wisdom",
+  Air:   "ideas, communication, flexibility, social intelligence",
+  Water: "intuition, empathy, emotional depth, spiritual attunement"
+};
+const MODALITY_LESSONS = {
+  Cardinal: "lead boldly and start things with heart—balance impulse with integration.",
+  Fixed:    "devote yourself with staying power—release rigidity that blocks flow.",
+  Mutable:  "adapt with grace—discern which paths to keep and which to let go."
+};
+
+const DECAN_COLOR = {
+  1: "pioneer energy with fresh intent",
+  2: "refining energy with sustained growth",
+  3: "culminating energy with legacy themes"
+};
+
+const LIFE_PATHS = {
+  1: "Independence & leadership—own your voice and initiate with integrity.",
+  2: "Harmony & partnership—collaboration is your catalyst.",
+  3: "Creative expression—share your gifts, stories, and joy.",
+  4: "Stability & mastery—build foundations that last.",
+  5: "Freedom & change—growth through exploration.",
+  6: "Service & care—heal through devotion and beauty.",
+  7: "Inner wisdom—seek truth, study, and spiritual depth.",
+  8: "Power & stewardship—lead with ethics and impact.",
+  9: "Compassionate completion—give back and release with love.",
+  11: "Master Vision—channel inspiration to uplift others.",
+  22: "Master Builder—turn vision into lasting structures.",
+  33: "Master Healer—embody unconditional love in action."
+};
+
+const RELATION_BY_ELEMENT = {
+  Fire:  "You love with warmth and honesty—thriving when passion has a purpose.",
+  Earth: "You love with loyalty and presence—trust is built through consistency.",
+  Air:   "You love through conversation and curiosity—ideas are your love language.",
+  Water: "You love through devotion and depth—safety opens your intuitive heart."
+};
+
+function buildInsightBlocks({name, place, dateStr, timeStr}) {
+  const sun = getSunSign(dateStr);
+  const decan = getDecan(sun, dateStr);
+  const lp = getLifePath(dateStr);
+  const phase = moonPhase(dateStr);
+  const tod = timeOfDayArchetype(timeStr);
+
+  const who = name ? name : "You";
+
+  const personality = 
+    `${who} carry ${sun.name} sunlight colored by the ${sun.element} element ` +
+    `and a ${sun.modality.toLowerCase()} rhythm. Expect themes of ${ELEMENT_THEMES[sun.element]}. ` +
+    `This birthday sits in the ${decan}ᵗʰ decan—${DECAN_COLOR[decan]}.`;
+
+  const lifeLessons = 
+    `Life Path ${lp}: ${LIFE_PATHS[lp]} ` +
+    `As a ${sun.modality.toLowerCase()} sign, a repeating lesson is to ${MODALITY_LESSONS[sun.modality]}`;
+
+  const relationships = 
+    `${RELATION_BY_ELEMENT[sun.element]} ` +
+    `Let relational growth be paced; honor cycles of closeness and space. ` +
+    `${tod.label !== "Timeless" ? `Your time-of-day signature (${tod.label}) suggests ${tod.note}` : ""}`;
+
+  const timingThemes = 
+    `${phase.emoji} ${phase.name} imprint: ${phase.theme}. ` +
+    `Use this as a personal timing compass—lean into monthly cycles where new moons seed intention and full moons reveal outcomes. ` +
+    `Choose one 30-day theme to focus on and track micro-wins weekly.`;
+
+  const profile = 
+    `Birth profile for ${who}: ${place ? place + " — " : ""}${new Date(dateStr + "T00:00:00").toLocaleDateString()}` +
+    `${timeStr ? (" at " + timeStr) : ""}. ` +
+    `Sun in ${sun.name} • Element ${sun.element} • ${sun.modality} modality.`
+
+  return [
+    { title: "Personality Patterns", body: personality },
+    { title: "Life Purpose & Lessons", body: lifeLessons },
+    { title: "Relationship Dynamics", body: relationships },
+    { title: "Timing Themes", body: timingThemes },
+    { title: "Your Birth Profile", body: profile }
+  ];
+}
+
+/* Render + Wire Form */
+function renderInsights(items) {
+  const wrap = document.getElementById('bc-results');
+  wrap.classList.add('active');
+  wrap.innerHTML = items.map(i => `
+    <div class="insight-card">
+      <h3>${i.title}</h3>
+      <p>${i.body}</p>
+    </div>
+  `).join('');
+  const pdfSec = document.getElementById('pdf-download-section');
+  if (pdfSec) pdfSec.style.display = 'block';
+
+  // Smooth scroll to results
+  setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+async function generateCosmicBlueprint(e) {
+  e.preventDefault();
+  const name = (document.getElementById('bc-name')?.value || "").trim();
+  const place = (document.getElementById('bc-place')?.value || "").trim();
+  const dateStr = document.getElementById('bc-date')?.value;
+  const timeStr = document.getElementById('bc-time')?.value;
+
+  if (!dateStr) return; // require date
+  const btn = document.querySelector('#bc-form button[type="submit"]');
+  const old = btn.innerHTML;
+  btn.innerHTML = 'Generating Insights... ✨';
+  btn.disabled = true;
+
+  try {
+    const insights = buildInsightBlocks({ name, place, dateStr, timeStr });
+    window.__lastBlueprint = { name, place, dateStr, timeStr, insights };
+    renderInsights(insights);
+  } finally {
+    btn.innerHTML = old;
+    btn.disabled = false;
+  }
+}
+
+/* PDF (optional if jsPDF present) */
+function downloadBirthChartPDF() {
+  if (!window.__lastBlueprint) { alert('Please generate your birth chart first.'); return; }
+  if (!window.jspdf?.jsPDF) { alert('PDF library not loaded.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const data = window.__lastBlueprint;
+
+  const margin = 20;
+  let y = 20;
+
+  doc.setFontSize(22); doc.text('🌙 LunaAI Birth Insight Report', margin, y); y += 10;
+  doc.setLineWidth(0.4); doc.line(margin, y, 210 - margin, y); y += 10;
+
+  doc.setFontSize(11);
+  const hdr = [
+    `Name: ${data.name || '—'}`,
+    `Place: ${data.place || '—'}`,
+    `Date: ${new Date(data.dateStr + 'T00:00:00').toLocaleDateString()}`,
+    `Time: ${data.timeStr || '—'}`
+  ];
+  hdr.forEach(h => { doc.text(h, margin, y); y += 6; });
+
+  y += 4;
+  data.insights.forEach(block => {
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setFont(undefined, 'bold'); doc.text(block.title, margin, y); y += 6;
+    doc.setFont(undefined, 'normal');
+    const lines = doc.splitTextToSize(block.body, 170);
+    lines.forEach(line => {
+      if (y > 280) { doc.addPage(); y = 20; }
+      doc.text(line, margin, y); y += 5;
+    });
+    y += 5;
+  });
+
+  const file = (data.name ? data.name.replace(/\s+/g,'_') + '_' : '') + 'LunaAI_Birth_Insights.pdf';
+  doc.save(file);
+}
+
+/* Hook form once DOM is ready */
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('bc-form');
+  if (form) form.addEventListener('submit', generateCosmicBlueprint);
+
+  const pdfBtn = document.querySelector('#pdf-download-section button');
+  if (pdfBtn) pdfBtn.addEventListener('click', downloadBirthChartPDF);
+});
+</script>
+
     </style>
 </head>
 <body>
