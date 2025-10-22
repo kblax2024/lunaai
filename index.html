@@ -1145,7 +1145,11 @@
             </form>
 
             <div id="bc-results" class="birth-chart-results"></div>
-            
+            <!-- PDF Download (appears after results) -->
+<div id="pdf-download" class="pdf-download" style="display:none; text-align:center; margin-top:32px;">
+  <button id="bc-download" class="btn-primary">Download My Birth Report 📄</button>
+</div>
+
             <!-- PDF Download Button (appears after results) -->
             <div id="pdf-download-section" class="pdf-download-section" style="display: none;">
                 <button onclick="downloadBirthChartPDF()" class="btn-primary">
@@ -1834,6 +1838,7 @@
     wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 })();
+      <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </script>
         </body>
 </html>
