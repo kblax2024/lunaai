@@ -1745,5 +1745,95 @@
     render(insights);
     resultsEl.style.display = 'grid';
     pdfSection.style.display =
-</body>
+<script>
+/* ========= Birth Chart (No-API) Starter =========
+   Renders insights instantly from date/place input.
+   You can swap this later for real API calls.
+*/
+
+(function () {
+  // Turn YYYY-MM-DD into MMDD number for simple ranges
+  function mdNum(dateStr) {
+    if (!dateStr) return null;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return m * 100 + d;
+  }
+
+  // Quick sun-sign inference (demo)
+  function getSunSign(dateStr) {
+    const md = mdNum(dateStr);
+    if (!md) return 'Unknown';
+    if (md >= 321 && md <= 419) return "Aries";
+    if (md >= 420 && md <= 520) return "Taurus";
+    if (md >= 521 && md <= 620) return "Gemini";
+    if (md >= 621 && md <= 722) return "Cancer";
+    if (md >= 723 && md <= 822) return "Leo";
+    if (md >= 823 && md <= 922) return "Virgo";
+    if (md >= 923 && md <= 1022) return "Libra";
+    if (md >= 1023 && md <= 1121) return "Scorpio";
+    if (md >= 1122 && md <= 1221) return "Sagittarius";
+    if ((md >= 1222 && md <= 1231) || (md >= 101 && md <= 119)) return "Capricorn";
+    if (md >= 120 && md <= 218) return "Aquarius";
+    return "Pisces";
+  }
+
+  // Build some readable insights (demo copy)
+  function buildInsights({ name, place, date, time, sun }) {
+    const who = name ? name : "You";
+    return [
+      {
+        title: "Personality Patterns",
+        body: `${who} carry the core energy of ${sun}. This shows up as natural strengths and a drive to grow through experience.`
+      },
+      {
+        title: "Life Lessons",
+        body: `Key themes involve turning repeated patterns into wisdom. Each month, choose one focus and track small wins.`
+      },
+      {
+        title: "Relationship Dynamics",
+        body: `You’re most nourished by honest connection and steady support. Speak openly about needs and pace.`
+      },
+      {
+        title: "Timing Themes",
+        body: `Use new moons for fresh starts; full moons for release. Align actions with weekly checkpoints for momentum.`
+      },
+      {
+        title: "Your Birth Profile",
+        body: `Place: ${place} · Born: ${date}${time ? " at " + time : ""} · Sun sign: ${sun}`
+      }
+    ];
+  }
+
+  // Expose one function the form calls
+  window.generateBirthChart = function () {
+    const name = (document.getElementById('bc-name')?.value || '').trim();
+    const place = (document.getElementById('bc-place')?.value || '').trim();
+    const date  = (document.getElementById('bc-date')?.value  || '').trim();
+    const time  = (document.getElementById('bc-time')?.value  || '').trim();
+
+    if (!place || !date) {
+      alert('Please enter your place of birth and date of birth.');
+      return;
+    }
+
+    const sun = getSunSign(date);
+    const insights = buildInsights({ name, place, date, time, sun });
+
+    const wrap = document.getElementById('bc-results');
+    if (!wrap) return;
+
+    wrap.classList.add('active');
+    wrap.innerHTML = insights.map(i => `
+      <div class="insight-card">
+        <h3>${i.title}</h3>
+        <p>${i.body}</p>
+      </div>
+    `).join('');
+
+    // Smooth scroll to the results
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+})();
+</script>
+        </body>
 </html>
