@@ -1296,6 +1296,199 @@ document.addEventListener('DOMContentLoaded', () => {
 
     </style>
 </head>
+    <!-- jsPDF (for PDF download) -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<!-- Cosmic Blueprint – Self-contained script -->
+<script>
+(function initCosmicBlueprint() {
+  const form   = document.getElementById('bc-form');
+  const wrap   = document.getElementById('bc-results');
+  const pdfSec = document.getElementById('pdf-download-section');
+
+  if (!form || !wrap) {
+    console.warn('Cosmic Blueprint: required elements not found.');
+    return;
+  }
+
+  // Storage for PDF
+  let currentBirthData = null;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const name = (document.getElementById('bc-name')?.value || '').trim();
+    const place = (document.getElementById('bc-place')?.value || '').trim();
+    const dateStr = document.getElementById('bc-date')?.value || '';
+    const timeStr = document.getElementById('bc-time')?.value || '12:00';
+
+    if (!place || !dateStr) {
+      alert('Please enter at least your date of birth and place of birth.');
+      return;
+    }
+
+    const btn = form.querySelector('button[type="submit"]');
+    const original = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = 'Generating Insights... ✨'; }
+
+    try {
+      const sunSign = inferSunSign(dateStr);
+      const insights = buildInsights({ place, dateStr, timeStr, sunSign });
+
+      // Render
+      renderInsights(insights);
+
+      // Make data available for PDF
+      currentBirthData = { name: name || 'Your', place, date: dateStr, time: timeStr, insights };
+
+      // Show PDF button
+      if (pdfSec) {
+        pdfSec.style.display = 'block';
+        const pdfBtn = pdfSec.querySelector('button');
+        if (pdfBtn) {
+          pdfBtn.onclick = function() { downloadBirthChartPDF(currentBirthData); };
+        }
+      }
+
+    } catch (err) {
+      console.error('Cosmic Blueprint error:', err);
+      alert('Something went wrong generating insights. Please try again.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = original; }
+    }
+  });
+
+  function inferSunSign(isoDate) {
+    const [y, m, d] = isoDate.split('-').map(Number);
+    const md = m * 100 + d;
+    if (md >= 321 && md <= 419) return "Aries";
+    if (md >= 420 && md <= 520) return "Taurus";
+    if (md >= 521 && md <= 620) return "Gemini";
+    if (md >= 621 && md <= 722) return "Cancer";
+    if (md >= 723 && md <= 822) return "Leo";
+    if (md >= 823 && md <= 922) return "Virgo";
+    if (md >= 923 && md <= 1022) return "Libra";
+    if (md >= 1023 && md <= 1121) return "Scorpio";
+    if (md >= 1122 && md <= 1221) return "Sagittarius";
+    if ((md >= 1222 && md <= 1231) || (md >= 101 && md <= 119)) return "Capricorn";
+    if (md >= 120 && md <= 218) return "Aquarius";
+    return "Pisces";
+  }
+
+  function buildInsights({ place, dateStr, timeStr, sunSign }) {
+    return [
+      {
+        title: "Personality Traits",
+        body: `${sunSign} energy themes: leadership, initiative, and directness balanced with mindful patience. Core drive: to act with purpose and courage.`
+      },
+      {
+        title: "Emotional Patterns",
+        body: `You recharge through warmth and honest connection. Notice tendencies to react quickly—slow breath steers feeling into clarity.`
+      },
+      {
+        title: "Life Purpose & Challenges",
+        body: `Purpose: channel your fire into service and creative impact. Challenge: avoid burnout by honoring cycles of effort and rest.`
+      },
+      {
+        title: "Compatibility & Relationship Dynamics",
+        body: `You thrive with allies who value independence and openness. Harmony grows when each person's pace and space is respected.`
+      },
+      {
+        title: "Timing of Major Life Themes",
+        body: `Use new moons for fresh starts; full moons for release. Choose one 30-day focus and track small wins weekly.`
+      },
+      {
+        title: "Your Birth Profile",
+        body: `Birth data received: ${place}, ${dateStr} at ${timeStr}. Save this profile to revisit patterns monthly. (Demo mode - API not required)`
+      }
+    ];
+  }
+
+  function renderInsights(items) {
+    // If your CSS uses .birth-chart-results.active { display:grid; } this supports it
+    wrap.classList.add('active');
+    wrap.style.display = 'grid'; // fallback in case CSS class not present
+
+    wrap.innerHTML = items.map(item => `
+      <div class="insight-card">
+        <h3>${item.title}</h3>
+        <p>${item.body}</p>
+      </div>
+    `).join('');
+
+    setTimeout(() => {
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+  }
+
+  function downloadBirthChartPDF(data) {
+    try {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert('PDF library not loaded. Please try again.');
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const contentWidth = pageWidth - margin * 2;
+      let y = 20;
+
+      doc.setFontSize(22);
+      doc.setTextColor(45, 27, 78);
+      doc.text('🌙 LunaAI Birth Chart Report', margin, y); y += 10;
+
+      doc.setDrawColor(184, 165, 217);
+      doc.setLineWidth(0.5);
+      doc.line(margin, y, pageWidth - margin, y); y += 10;
+
+      doc.setFontSize(11);
+      doc.setTextColor(26, 26, 46);
+      const nameText = data.name !== 'Your' ? `Name: ${data.name}` : 'Your Birth Chart';
+      doc.text(nameText, margin, y); y += 6;
+      doc.text(`Place: ${data.place}`, margin, y); y += 6;
+
+      const dt = new Date(data.date + 'T00:00:00');
+      const formatted = dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      doc.text(`Date: ${formatted}`, margin, y); y += 6;
+      doc.text(`Time: ${data.time}`, margin, y); y += 10;
+
+      data.insights.forEach(section => {
+        if (y > 260) { doc.addPage(); y = 20; }
+        doc.setTextColor(155, 126, 189);
+        doc.setFont(undefined, 'bold');
+        doc.text(section.title, margin, y); y += 6;
+
+        doc.setTextColor(107, 107, 126);
+        doc.setFont(undefined, 'normal');
+        const lines = doc.splitTextToSize(section.body, contentWidth);
+        lines.forEach(line => {
+          if (y > 280) { doc.addPage(); y = 20; }
+          doc.text(line, margin, y);
+          y += 5;
+        });
+        y += 6;
+      });
+
+      const footerY = doc.internal.pageSize.getHeight() - 15;
+      doc.setFontSize(8);
+      doc.setTextColor(184, 165, 217);
+      doc.text('Generated by LunaAI — For reflection & wellness only.', margin, footerY);
+
+      const file = (data.name !== 'Your')
+        ? `${data.name.replace(/\s+/g, '_')}_Birth_Chart.pdf`
+        : 'LunaAI_Birth_Chart.pdf';
+
+      doc.save(file);
+    } catch (err) {
+      console.error('PDF error:', err);
+      alert('Could not generate PDF. Please try again.');
+    }
+  }
+})();
+</script>
+
 <body>
     <!-- Header -->
     <header id="header">
