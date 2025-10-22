@@ -1111,53 +1111,12 @@
     </section>
 
     <!-- Birth Chart Section -->
-    <section id="birth-chart" class="birth-chart">
-        <div class="container">
-            <div class="section-header">
-                <h2>Your Cosmic Blueprint</h2>
-                <p>Explore your birth chart for deeper insights into personality, life purpose, and soul lessons</p>
-            </div>
-            <div class="birth-chart-intro">
-                <p>Enter your birth details to discover personality patterns, life lessons, relationship dynamics, and timing themes. <span style="opacity: 0.7;">Time is optional, but improves accuracy.</span></p>
-            </div>
-            
-            <form id="bc-form" class="birth-chart-form" onsubmit="event.preventDefault(); generateBirthChart();">
-                <div class="form-group full-width">
-                    <label for="bc-name">Your Name (optional)</label>
-                    <input id="bc-name" type="text" placeholder="e.g., Sarah">
-                </div>
-                <div class="form-group full-width">
-                    <label for="bc-place">Place of Birth (City, Country)</label>
-                    <input id="bc-place" type="text" required="" placeholder="e.g., Miami, USA">
-                </div>
-                <div class="form-group">
-                    <label for="bc-date">Date of Birth</label>
-                    <input id="bc-date" type="date" required="">
-                </div>
-                <div class="form-group">
-                    <label for="bc-time">Time of Birth (optional)</label>
-                    <input id="bc-time" type="time">
-                </div>
-                <button type="submit" class="btn-primary full-width">
-                    Generate Birth Insights ✨
-                </button>
-                <small class="form-disclaimer full-width">For reflection and wellness only. Not medical, legal, or financial advice.</small>
-            </form>
+    <div id="bc-results" class="birth-chart-results"></div>
 
-            <div id="bc-results" class="birth-chart-results"></div>
-            <!-- PDF Download (appears after results) -->
+<!-- PDF Download (appears after results) -->
 <div id="pdf-download" class="pdf-download" style="display:none; text-align:center; margin-top:32px;">
   <button id="bc-download" class="btn-primary">Download My Birth Report 📄</button>
 </div>
-
-            <!-- PDF Download Button (appears after results) -->
-            <div id="pdf-download-section" class="pdf-download-section" style="display: none;">
-                <button onclick="downloadBirthChartPDF()" class="btn-primary">
-                    Download My Birth Report 📄
-                </button>
-            </div>
-        </div>
-    </section>
 
     <!-- How It Works Section -->
     <section id="how-it-works" class="how-it-works">
@@ -1840,5 +1799,6 @@
 })();
       <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
         </body>
 </html>
