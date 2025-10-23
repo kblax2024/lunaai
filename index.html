@@ -1109,14 +1109,56 @@
             </div>
         </div>
     </section>
+<!-- Birth Chart Section -->
+<section id="birth-chart" class="birth-chart">
+  <div class="container">
+    <div class="section-header">
+      <h2>Your Cosmic Blueprint</h2>
+      <p>Explore your birth chart for deeper insights into personality, life purpose, and soul lessons</p>
+    </div>
 
-    <!-- Birth Chart Section -->
+    <div class="birth-chart-intro">
+      <p>Enter your birth details to discover personality patterns, life lessons, relationship dynamics, and timing themes.
+        <span style="opacity: 0.7;">Time is optional, but improves accuracy.</span>
+      </p>
+    </div>
+
+    <form id="bc-form" class="birth-chart-form" onsubmit="event.preventDefault(); generateBirthChart();">
+      <div class="form-group full-width">
+        <label for="bc-name">Your Name (optional)</label>
+        <input id="bc-name" type="text" placeholder="e.g., Sarah">
+      </div>
+
+      <div class="form-group full-width">
+        <label for="bc-place">Place of Birth (City, Country)</label>
+        <input id="bc-place" type="text" required placeholder="e.g., Miami, USA">
+      </div>
+
+      <div class="form-group">
+        <label for="bc-date">Date of Birth</label>
+        <input id="bc-date" type="date" required>
+      </div>
+
+      <div class="form-group">
+        <label for="bc-time">Time of Birth (optional)</label>
+        <input id="bc-time" type="time">
+      </div>
+
+      <button type="submit" class="btn-primary">Generate Birth Insights ✨</button>
+      <small class="form-disclaimer full-width">
+        For reflection and wellness only. Not medical, legal, or financial advice.
+      </small>
+    </form>
+
+    <!-- Results container -->
     <div id="bc-results" class="birth-chart-results"></div>
 
-<!-- PDF Download (appears after results) -->
-<div id="pdf-download" class="pdf-download" style="display:none; text-align:center; margin-top:32px;">
-  <button id="bc-download" class="btn-primary">Download My Birth Report 📄</button>
-</div>
+    <!-- PDF Download (appears after results) -->
+    <div id="pdf-download" class="pdf-download" style="display:none; text-align:center; margin-top:32px;">
+      <button id="bc-download" class="btn-primary" type="button" onclick="downloadBirthPDF()">Download My Birth Report 📄</button>
+    </div>
+  </div>
+</section>
 
     <!-- How It Works Section -->
     <section id="how-it-works" class="how-it-works">
@@ -1797,8 +1839,129 @@
     wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 })();
-      <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<script>
+  // your functions start here (inferSunSign, generateBirthChart, downloadBirthPDF)
+     
+    <script>
+  // -------- DEMO: Basic Sun Sign inference (no API) --------
+  function inferSunSign(isoDate) {
+    const [y, m, d] = isoDate.split('-').map(Number);
+    const md = m * 100 + d;
+    if (md >= 321 && md <= 419) return "Aries";
+    if (md >= 420 && md <= 520) return "Taurus";
+    if (md >= 521 && md <= 620) return "Gemini";
+    if (md >= 621 && md <= 722) return "Cancer";
+    if (md >= 723 && md <= 822) return "Leo";
+    if (md >= 823 && md <= 922) return "Virgo";
+    if (md >= 923 && md <= 1022) return "Libra";
+    if (md >= 1023 && md <= 1121) return "Scorpio";
+    if (md >= 1122 && md <= 1221) return "Sagittarius";
+    if ((md >= 1222 && md <= 1231) || (md >= 101 && md <= 119)) return "Capricorn";
+    if (md >= 120 && md <= 218) return "Aquarius";
+    return "Pisces";
+  }
+
+  // Keep last generated data for PDF
+  window.__lastBirthData = null;
+
+  function generateBirthChart() {
+    const name = document.getElementById('bc-name').value.trim() || 'Your';
+    const place = document.getElementById('bc-place').value.trim();
+    const date  = document.getElementById('bc-date').value;
+    const time  = document.getElementById('bc-time').value || '12:00';
+
+    if (!place || !date) {
+      alert('Please enter at least Place and Date of birth.');
+      return;
+    }
+
+    // Demo insights from Sun sign
+    const sun = inferSunSign(date);
+    const insights = [
+      { title: 'Personality Traits',
+        body: `${sun} energy: leadership, initiative, and directness balanced with mindful patience.` },
+      { title: 'Emotional Patterns',
+        body: 'You recharge through warmth and honest connection. Slow breaths steer emotion into clarity.' },
+      { title: 'Life Purpose & Challenges',
+        body: 'Purpose: channel your fire into service and creative impact. Challenge: honor cycles of effort and rest.' },
+      { title: 'Relationship Dynamics',
+        body: 'You thrive with allies who value independence and openness. Respect pace and space for harmony.' },
+      { title: 'Timing Themes',
+        body: 'Use new moons for fresh starts; full moons for release. Pick one 30-day focus and track small wins.' },
+      { title: 'Birth Profile',
+        body: `Birth data received: ${place}, ${date} at ${time}. (Demo mode—add APIs later for full chart.)` }
+    ];
+
+    const results = document.getElementById('bc-results');
+    results.innerHTML = insights.map(i => `
+      <div class="insight-card">
+        <h3>${i.title}</h3>
+        <p>${i.body}</p>
+      </div>
+    `).join('');
+    results.classList.add('active');
+
+    // Show download
+    document.getElementById('pdf-download').style.display = 'block';
+
+    // Save for PDF
+    window.__lastBirthData = { name, place, date, time, insights };
+  }
+
+  function downloadBirthPDF() {
+    if (!window.__lastBirthData) {
+      alert('Please generate your birth chart first.');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const data = window.__lastBirthData;
+
+    let y = 18, x = 18, w = doc.internal.pageSize.getWidth() - 36;
+
+    doc.setFontSize(20);
+    doc.setTextColor(45, 27, 78);
+    doc.text('🌙 LunaAI – Birth Chart Report', x, y); y += 10;
+
+    doc.setDrawColor(184,165,217);
+    doc.setLineWidth(0.5);
+    doc.line(x, y, x + w, y); y += 8;
+
+    doc.setFontSize(11);
+    doc.setTextColor(90, 90, 110);
+    const pretty = new Date(data.date+'T00:00:00').toLocaleDateString('en-US',
+      { year:'numeric', month:'long', day:'numeric' });
+
+    [
+      (data.name && data.name !== 'Your') ? `Name: ${data.name}` : 'Name: —',
+      `Place: ${data.place}`,
+      `Date: ${pretty}`,
+      `Time: ${data.time}`
+    ].forEach(line => { doc.text(line, x, y); y += 6; });
+
+    y += 4;
+    data.insights.forEach(sec => {
+      if (y > 265) { doc.addPage(); y = 18; }
+      doc.setFont(undefined, 'bold'); doc.setTextColor(155,126,189);
+      doc.text(sec.title, x, y); y += 6;
+
+      doc.setFont(undefined, 'normal'); doc.setTextColor(80,80,95);
+      const lines = doc.splitTextToSize(sec.body, w);
+      lines.forEach(t => { if (y > 285) { doc.addPage(); y = 18; } doc.text(t, x, y); y += 5; });
+      y += 3;
+    });
+
+    const footerY = doc.internal.pageSize.getHeight() - 12;
+    doc.setFontSize(9);
+    doc.setTextColor(150, 140, 170);
+    doc.text('Generated by LunaAI • For reflection & wellness only', x, footerY);
+
+    const file = (data.name && data.name !== 'Your')
+      ? `${data.name.replace(/\s+/g,'_')}_Birth_Report.pdf`
+      : 'Birth_Report.pdf';
+    doc.save(file);
+  }
 </script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
         </body>
 </html>
