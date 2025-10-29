@@ -1144,7 +1144,7 @@
         <input id="bc-time" type="time">
       </div>
 
-      <button type="submit" class="btn-primary">Generate Birth Insights ✨</button>
+      <button type="button" id="generate-btn" onclick="generateBirthChart()" class="btn-primary full-width">Generate Birth Insights ✨</button>
       <small class="form-disclaimer full-width">
         For reflection and wellness only. Not medical, legal, or financial advice.
       </small>
@@ -1386,70 +1386,45 @@
         // Store birth chart data globally for PDF generation
         let currentBirthChartData = null;
 
-        // Birth Chart Generator - API-Ready with Demo Fallback
-        async function generateBirthChart() {
-            const name = document.getElementById('bc-name').value.trim();
-            const place = document.getElementById('bc-place').value.trim();
-            const dateStr = document.getElementById('bc-date').value;
-            const timeStr = document.getElementById('bc-time').value || "12:00";
+        // Birth Chart Generator - Working Version
+async function generateBirthChart() {
+    const name = document.getElementById('bc-name').value.trim();
+    const place = document.getElementById('bc-place').value.trim();
+    const dateStr = document.getElementById('bc-date').value;
+    const timeStr = document.getElementById('bc-time').value || "12:00";
+    
+    if (!place || !dateStr) {
+        alert('Please enter both place and date of birth.');
+        return;
+    }
+    
+    const submitBtn = document.getElementById('generate-btn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = 'Generating Insights... ✨';
+    submitBtn.disabled = true;
+    
+    setTimeout(function() {
+        try {
+            const sunSign = inferSunSign(dateStr);
+            const insights = buildDemoInsights({ place, dateStr, timeStr, sunSign });
             
-            if (!place || !dateStr) return;
+            currentBirthChartData = {
+                name: name || 'Your',
+                place: place,
+                date: dateStr,
+                time: timeStr,
+                insights: insights
+            };
             
-            // Show loading state
-            const submitBtn = document.querySelector('#bc-form button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = 'Generating Insights... ✨';
-            submitBtn.disabled = true;
-            
-            try {
-                // Check if API endpoints are configured (not default values)
-                const hasAPIEndpoints = window.ENV.GEOCODE_ENDPOINT !== '/api/geocode' || 
-                                       window.ENV.ASTROLOGY_ENDPOINT !== '/api/astrology';
-                
-                let insights;
-                if (hasAPIEndpoints && window.ENV.GEOCODE_ENDPOINT.startsWith('http')) {
-                    // API MODE: Call serverless functions
-                    console.log('Running in API mode with serverless functions');
-                    const coordinates = await getCoordinatesFromAPI(place);
-                    const astrologyData = await getAstrologyDataFromAPI(dateStr, timeStr, coordinates);
-                    insights = parseAstrologyData(astrologyData, place, dateStr, timeStr);
-                } else {
-                    // DEMO MODE: Use local sun sign inference
-                    console.log('Running in DEMO mode. Deploy serverless functions for real data.');
-                    const sunSign = inferSunSign(dateStr);
-                    const payload = { place, dateStr, timeStr, sunSign };
-                    insights = buildInsights(payload);
-                }
-                
-                // Store data for PDF generation
-                currentBirthChartData = {
-                    name: name || 'Your',
-                    place,
-                    date: dateStr,
-                    time: timeStr,
-                    insights
-                };
-                
-                renderInsights(insights);
-            } catch (error) {
-                console.error('Birth chart generation error:', error);
-                // Fallback to demo mode
-                const sunSign = inferSunSign(dateStr);
-                const payload = { place, dateStr, timeStr, sunSign };
-                const insights = buildInsights(payload);
-                
-                currentBirthChartData = {
-                    name: name || 'Your',
-                    place,
-                    date: dateStr,
-                    time: timeStr,
-                    insights
-                };
-                
-                renderInsights(insights);
-            } finally {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+            renderInsights(insights);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Unable to generate birth chart: ' + error.message);
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    }, 500);
             }
         }
 
