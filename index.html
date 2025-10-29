@@ -1074,41 +1074,67 @@
         </div>
     </section>
 
-    <!-- Tarot Section -->
-    <section id="tarot" class="tarot">
-        <div class="container">
-            <div class="section-header">
-                <h2>Personalized Tarot Readings</h2>
-                <p>Discover guidance through the ancient wisdom of tarot</p>
+   <!-- Interactive Tarot Section -->
+<section id="tarot" class="tarot-interactive">
+    <div class="container">
+        <div class="section-header">
+            <h2>Interactive Tarot Readings</h2>
+            <p>Choose your spread and discover the guidance that awaits you</p>
+        </div>
+        
+        <!-- Spread Selection -->
+        <div id="tarot-spread-selection" class="tarot-spread-selection">
+            <div class="tarot-spread-option" onclick="selectTarotSpread('daily', 1, event)">
+                <div class="tarot-spread-icon">🌟</div>
+                <div class="tarot-spread-name">Daily Draw</div>
+                <div class="tarot-spread-desc">Quick guidance for today. Single card wisdom for immediate insight.</div>
             </div>
-            <div class="tarot-intro">
-                <p>LunaAI generates custom tarot readings based on your current energy, intentions, and chosen themes. Whether you seek daily clarity or weekly guidance, each spread is thoughtfully crafted to illuminate your path forward.</p>
+            
+            <div class="tarot-spread-option" onclick="selectTarotSpread('three-card', 3, event)">
+                <div class="tarot-spread-icon">🔮</div>
+                <div class="tarot-spread-name">Past-Present-Future</div>
+                <div class="tarot-spread-desc">Three cards revealing your timeline. Understand your journey's flow.</div>
             </div>
-            <div class="tarot-cards">
-                <div class="tarot-card">
-                    <div class="card-visual">🌙</div>
-                    <h3>The Moon</h3>
-                    <p class="card-keyword">Intuition</p>
-                    <p>Trust your inner voice and embrace the mysteries that lie beneath the surface. Your subconscious holds the answers you seek.</p>
-                </div>
-                <div class="tarot-card">
-                    <div class="card-visual">☀️</div>
-                    <h3>The Sun</h3>
-                    <p class="card-keyword">Clarity</p>
-                    <p>A time of illumination and joy. Truth reveals itself, bringing warmth and confidence to your spiritual journey.</p>
-                </div>
-                <div class="tarot-card">
-                    <div class="card-visual">⭐</div>
-                    <h3>The Star</h3>
-                    <p class="card-keyword">Hope</p>
-                    <p>Divine inspiration flows through you. Remain open to healing, renewal, and the cosmic guidance that surrounds you.</p>
-                </div>
+            
+            <div class="tarot-spread-option" onclick="selectTarotSpread('love', 5, event)">
+                <div class="tarot-spread-icon">💕</div>
+                <div class="tarot-spread-name">Love & Relationship</div>
+                <div class="tarot-spread-desc">Five cards exploring matters of the heart. Understand your connections.</div>
             </div>
-            <div class="tarot-cta">
-                <a href="file:///Users/kevinblaxton/Downloads/lunaai_website%20(6).html#" class="btn-primary">Reveal My Reading ✨</a>
+            
+            <div class="tarot-spread-option" onclick="selectTarotSpread('career', 5, event)">
+                <div class="tarot-spread-icon">⭐</div>
+                <div class="tarot-spread-name">Career & Purpose</div>
+                <div class="tarot-spread-desc">Five cards illuminating your path. Discover your calling and potential.</div>
+            </div>
+            
+            <div class="tarot-spread-option" onclick="selectTarotSpread('celtic', 10, event)">
+                <div class="tarot-spread-icon">✨</div>
+                <div class="tarot-spread-name">Celtic Cross</div>
+                <div class="tarot-spread-desc">Ten cards for deep insight. The most comprehensive reading available.</div>
             </div>
         </div>
-    </section>
+        
+        <div class="btn-container">
+            <button id="tarot-draw-btn" class="btn-primary" onclick="drawTarotCards()" disabled>Select a Spread First</button>
+        </div>
+        
+        <p id="tarot-instruction" class="tarot-instruction hidden"></p>
+        
+        <!-- Card Display Area -->
+        <div id="tarot-card-deck" class="tarot-card-deck"></div>
+        
+        <!-- Interpretations -->
+        <div id="tarot-interpretations" class="tarot-interpretations">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #D4AF37; font-family: 'Cormorant Garamond', serif;">Your Reading</h2>
+            <div id="tarot-interpretation-content"></div>
+        </div>
+        
+        <div class="btn-container">
+            <button id="tarot-new-reading-btn" class="btn-primary hidden" onclick="resetTarotReading()">Draw New Reading ✨</button>
+        </div>
+    </div>
+</section>
 <!-- Birth Chart Section -->
 <section id="birth-chart" class="birth-chart">
   <div class="container">
