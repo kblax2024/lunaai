@@ -1382,130 +1382,10 @@
                 header.classList.remove('scrolled');
             }
         });
-
-        // Store birth chart data globally for PDF generation
+// Store birth chart data globally for PDF generation
         let currentBirthChartData = null;
 
-        // Birth Chart Generator - Working Version
-async function generateBirthChart() {
-    const name = document.getElementById('bc-name').value.trim();
-    const place = document.getElementById('bc-place').value.trim();
-    const dateStr = document.getElementById('bc-date').value;
-    const timeStr = document.getElementById('bc-time').value || "12:00";
-    
-    if (!place || !dateStr) {
-        alert('Please enter both place and date of birth.');
-        return;
-    }
-    
-    const submitBtn = document.getElementById('generate-btn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = 'Generating Insights... ✨';
-    submitBtn.disabled = true;
-    
-    setTimeout(function() {
-        try {
-            const sunSign = inferSunSign(dateStr);
-            const insights = buildDemoInsights({ place, dateStr, timeStr, sunSign });
-            
-            currentBirthChartData = {
-                name: name || 'Your',
-                place: place,
-                date: dateStr,
-                time: timeStr,
-                insights: insights
-            };
-            
-            renderInsights(insights);
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Unable to generate birth chart: ' + error.message);
-        } finally {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    }, 500);
-            }
-        }
-
-        // Call serverless geocoding function
-        async function getCoordinatesFromAPI(place) {
-            const response = await fetch(window.ENV.GEOCODE_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ place })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Geocoding failed');
-            }
-            
-            return await response.json();
-        }
-
-        // Call serverless astrology function
-        async function getAstrologyDataFromAPI(date, time, coordinates) {
-            const response = await fetch(window.ENV.ASTROLOGY_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    date,
-                    time,
-                    latitude: coordinates.latitude,
-                    longitude: coordinates.longitude
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Astrology data fetch failed');
-            }
-            
-            return await response.json();
-        }
-
-        // Parse real astrology API data into insights
-        function parseAstrologyData(apiData, place, dateStr, timeStr) {
-            return [
-                {
-                    title: "Sun Sign & Core Identity",
-                    body: apiData.sun_sign ? 
-                        `Sun in ${apiData.sun_sign.sign}: ${apiData.sun_sign.interpretation}` :
-                        'Your core essence and life force energy.'
-                },
-                {
-                    title: "Moon Sign & Emotions",
-                    body: apiData.moon_sign ? 
-                        `Moon in ${apiData.moon_sign.sign}: ${apiData.moon_sign.interpretation}` :
-                        'Your emotional nature and inner world.'
-                },
-                {
-                    title: "Rising Sign & Persona",
-                    body: apiData.ascendant ? 
-                        `${apiData.ascendant.sign} Rising: ${apiData.ascendant.interpretation}` :
-                        'How you present yourself to the world.'
-                },
-                {
-                    title: "Life Purpose & Soul Path",
-                    body: apiData.north_node ? 
-                        `North Node in ${apiData.north_node.sign}: ${apiData.north_node.interpretation}` :
-                        'Your karmic path and soul growth direction.'
-                },
-                {
-                    title: "Love & Relationship Style",
-                    body: apiData.venus ? 
-                        `Venus in ${apiData.venus.sign}: ${apiData.venus.interpretation}` :
-                        'Your approach to love, beauty, and connection.'
-                },
-                {
-                    title: "Your Birth Profile",
-                    body: `Location: ${place} | Born: ${dateStr} at ${timeStr}${apiData.house_system ? ` | Houses: ${apiData.house_system} system` : ''}`
-                }
-            ];
-        }
-
-        // Demo mode: Sun sign inference (no API needed)
+        // Demo mode: Sun sign inference
         function inferSunSign(isoDate) {
             const [y, m, d] = isoDate.split('-').map(Number);
             const md = m * 100 + d;
@@ -1524,162 +1404,95 @@ async function generateBirthChart() {
             return "Pisces";
         }
 
-        // Demo mode: Build insights from sun sign
-        function buildInsights({ place, dateStr, timeStr, sunSign }) {
-            return [
-                {
-                    title: "Personality Traits",
-                    body: `${sunSign} energy themes: leadership, initiative, and directness balanced with mindful patience. Core drive: to act with purpose and courage.`
-                },
-                {
-                    title: "Emotional Patterns",
-                    body: `You recharge through warmth and honest connection. Notice tendencies to react quickly—slow breath steers feeling into clarity.`
-                },
-                {
-                    title: "Life Purpose & Challenges",
-                    body: `Purpose: channel your fire into service and creative impact. Challenge: avoid burnout by honoring cycles of effort and rest.`
-                },
-                {
-                    title: "Compatibility & Relationship Dynamics",
-                    body: `You thrive with allies who value independence and openness. Harmony grows when each person's pace and space is respected.`
-                },
-                {
-                    title: "Timing of Major Life Themes",
-                    body: `Use new moons for fresh starts; full moons for release. Choose one 30-day focus and track small wins weekly.`
-                },
-                {
-                    title: "Your Birth Profile",
-                    body: `Birth data received: ${place}, ${dateStr} at ${timeStr}. Save this profile to revisit patterns monthly. (Demo mode - add API keys for full chart)`
+        // Birth Chart Generator - Working Version
+        function generateBirthChart() {
+            const name = document.getElementById('bc-name').value.trim();
+            const place = document.getElementById('bc-place').value.trim();
+            const dateStr = document.getElementById('bc-date').value;
+            const timeStr = document.getElementById('bc-time').value || "12:00";
+            
+            if (!place || !dateStr) {
+                alert('Please enter both place and date of birth.');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('generate-btn');
+            if (!submitBtn) return;
+            
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = 'Generating Insights... ✨';
+            submitBtn.disabled = true;
+            
+            setTimeout(function() {
+                try {
+                    const sunSign = inferSunSign(dateStr);
+                    const insights = buildDemoInsights(place, dateStr, timeStr, sunSign);
+                    
+                    currentBirthChartData = {
+                        name: name || 'Your',
+                        place: place,
+                        date: dateStr,
+                        time: timeStr,
+                        insights: insights
+                    };
+                    
+                    renderInsights(insights);
+                } catch (error) {
+                    alert('Unable to generate birth chart: ' + error.message);
+                } finally {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                 }
+            }, 500);
+        }
+
+        // Build demo insights
+        function buildDemoInsights(place, dateStr, timeStr, sunSign) {
+            const signData = {
+                'Libra': {
+                    personality: 'Harmonious Libra spirit: diplomatic, aesthetic, and relationship-oriented.',
+                    emotions: 'You seek emotional equilibrium through relationships.',
+                    purpose: 'Create beauty, justice, and harmony in all you do.',
+                    relationships: 'Partnership is your spiritual path.',
+                    timing: 'Venus guides you. Best months: September-October, March-April.'
+                }
+            };
+            
+            const data = signData[sunSign] || {
+                personality: sunSign + ' energy brings unique gifts.',
+                emotions: 'Your emotional landscape is rich.',
+                purpose: 'Your life purpose unfolds through authentic expression.',
+                relationships: 'Connection deepens when you honor your nature.',
+                timing: 'Trust your personal cycles.'
+            };
+            
+            return [
+                {title: "Sun in " + sunSign, body: data.personality},
+                {title: "Emotional Patterns", body: data.emotions},
+                {title: "Life Purpose", body: data.purpose},
+                {title: "Relationships", body: data.relationships},
+                {title: "Cosmic Timing", body: data.timing},
+                {title: "Your Data", body: place + " | " + dateStr + " at " + timeStr}
             ];
         }
 
+        // Render insights
         function renderInsights(items) {
             const wrap = document.getElementById('bc-results');
+            if (!wrap) return;
+            
             wrap.classList.add('active');
-            wrap.innerHTML = items.map(item => `
-                <div class="insight-card">
-                    <h3>${item.title}</h3>
-                    <p>${item.body}</p>
-                </div>
-            `).join('');
+            wrap.innerHTML = items.map(function(item) {
+                return '<div class="insight-card"><h3>' + item.title + '</h3><p>' + item.body + '</p></div>';
+            }).join('');
             
-            // Show PDF download button
-            document.getElementById('pdf-download-section').style.display = 'block';
+            const pdfSection = document.getElementById('pdf-download');
+            if (pdfSection) pdfSection.style.display = 'block';
             
-            // Smooth scroll to results
-            setTimeout(() => {
+            setTimeout(function() {
                 wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
         }
-
-        // PDF Generation Function
-        function downloadBirthChartPDF() {
-            if (!currentBirthChartData) {
-                alert('Please generate your birth chart first.');
-                return;
-            }
-
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            const data = currentBirthChartData;
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const margin = 20;
-            const contentWidth = pageWidth - (margin * 2);
-            let yPos = 20;
-
-            // Header with moon emoji
-            doc.setFontSize(24);
-            doc.setTextColor(45, 27, 78);
-            doc.text('🌙 LunaAI Birth Chart Report', margin, yPos);
-            
-            yPos += 15;
-            
-            // Decorative line
-            doc.setDrawColor(184, 165, 217);
-            doc.setLineWidth(0.5);
-            doc.line(margin, yPos, pageWidth - margin, yPos);
-            
-            yPos += 10;
-
-            // Personal Information Section
-            doc.setFontSize(12);
-            doc.setTextColor(155, 126, 189);
-            doc.text('Birth Information', margin, yPos);
-            
-            yPos += 8;
-            
-            doc.setFontSize(10);
-            doc.setTextColor(26, 26, 46);
-            
-            const nameText = data.name !== 'Your' ? `Name: ${data.name}` : 'Your Birth Chart';
-            doc.text(nameText, margin, yPos);
-            yPos += 6;
-            
-            doc.text(`Place: ${data.place}`, margin, yPos);
-            yPos += 6;
-            
-            // Format date nicely
-            const dateObj = new Date(data.date + 'T00:00:00');
-            const formattedDate = dateObj.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            doc.text(`Date: ${formattedDate}`, margin, yPos);
-            yPos += 6;
-            
-            doc.text(`Time: ${data.time}`, margin, yPos);
-            yPos += 12;
-
-            // Insights Sections
-            doc.setFontSize(11);
-            
-            data.insights.forEach((insight, index) => {
-                // Check if we need a new page
-                if (yPos > 250) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-
-                // Section title
-                doc.setTextColor(155, 126, 189);
-                doc.setFont(undefined, 'bold');
-                doc.text(insight.title, margin, yPos);
-                yPos += 7;
-
-                // Section body
-                doc.setTextColor(107, 107, 126);
-                doc.setFont(undefined, 'normal');
-                
-                // Word wrap the body text
-                const lines = doc.splitTextToSize(insight.body, contentWidth);
-                lines.forEach(line => {
-                    if (yPos > 270) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                    doc.text(line, margin, yPos);
-                    yPos += 5;
-                });
-                
-                yPos += 8;
-            });
-
-            // Footer
-            const footerY = doc.internal.pageSize.getHeight() - 20;
-            doc.setFontSize(8);
-            doc.setTextColor(184, 165, 217);
-            doc.text('Generated by LunaAI - Your Sacred Space for Daily Spiritual Guidance', margin, footerY);
-            doc.text('For reflection and wellness only. Not medical, legal, or financial advice.', margin, footerY + 4);
-            
-            const dateGenerated = new Date().toLocaleDateString('en-US');
-            doc.text(`Report generated: ${dateGenerated}`, pageWidth - margin - 40, footerY);
-
-            // Save the PDF
-            const fileName = data.name !== 'Your' 
-                ? `${data.name.replace(/\s+/g, '_')}_Birth_Chart.pdf`
                 </script>
 <!-- Chatbase Chat widget -->
 <script>
